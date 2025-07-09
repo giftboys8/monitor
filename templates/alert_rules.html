@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>告警规则配置 - 应用运维监控系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-danger { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .table {
+                font-size: 0.9rem;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ 告警规则配置</h1>
+            <p>管理和配置系统告警规则</p>
+        </div>
+        
+        <div class="content-section">
+            <h2 class="section-title">告警规则列表</h2>
+            <div style="margin-bottom: 15px;">
+                <button class="btn btn-primary" onclick="showAddRuleModal()">➕ 新增规则</button>
+                <button class="btn btn-secondary" onclick="window.close()">🔙 返回主页</button>
+            </div>
+            <div id="rules-content">
+                <div class="loading">正在加载告警规则...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 新增规则模态框 -->
+    <div id="addRuleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">新增告警规则</h3>
+                <span class="close" onclick="closeAddRuleModal()">&times;</span>
+            </div>
+            <form id="addRuleForm">
+                <div class="form-group">
+                    <label class="form-label">规则名称</label>
+                    <input type="text" id="ruleName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">监控指标</label>
+                    <select id="itemSelect" class="form-select" required>
+                        <option value="">请选择监控指标</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">条件类型</label>
+                    <select id="conditionType" class="form-select" required>
+                        <option value="1">大于</option>
+                        <option value="2">小于</option>
+                        <option value="3">等于</option>
+                        <option value="4">不等于</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">阈值</label>
+                    <input type="number" id="thresholdValue" class="form-control" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">严重程度</label>
+                    <select id="ruleSeverity" class="form-select" required>
+                        <option value="1">信息</option>
+                        <option value="2">警告</option>
+                        <option value="3">严重</option>
+                        <option value="4">致命</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">连续触发次数</label>
+                    <input type="number" id="continuousCount" class="form-control" value="1" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">描述模板</label>
+                    <textarea id="descriptionTemplate" class="form-control" rows="3" placeholder="告警描述模板"></textarea>
+                </div>
+                <div style="text-align: right; margin-top: 25px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddRuleModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">创建规则</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // 加载告警规则列表
+        async function loadAlertRules() {
+            try {
+                const response = await fetch('/api/alert-rules-all');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const content = document.getElementById('rules-content');
+                    if (result.data.length === 0) {
+                        content.innerHTML = '<p>暂无告警规则</p>';
+                        return;
+                    }
+                    
+                    let html = '<table class="table"><thead><tr><th>规则名称</th><th>阈值</th><th>严重程度</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+                    
+                    result.data.forEach(rule => {
+                        let severityClass, severityText;
+                        switch(rule.severity) {
+                            case 1: severityClass = 'status-info'; severityText = '信息'; break;
+                            case 2: severityClass = 'status-warning'; severityText = '警告'; break;
+                            case 3: severityClass = 'status-danger'; severityText = '严重'; break;
+                            case 4: severityClass = 'status-danger'; severityText = '致命'; break;
+                            default: severityClass = 'status-info'; severityText = '未知';
+                        }
+                        
+                        const statusClass = rule.is_enabled === 1 ? 'status-active' : 'status-danger';
+                        const statusText = rule.is_enabled === 1 ? '启用' : '禁用';
+                        const createTime = new Date(rule.create_time).toLocaleString('zh-CN');
+                        
+                        html += `<tr>
+                            <td>${rule.rule_name}</td>
+                            <td>${rule.threshold_value || '-'}</td>
+                            <td><span class="status-badge ${severityClass}">${severityText}</span></td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>${createTime}</td>
+                            <td>
+                                <button class="btn btn-secondary" onclick="editRule('${rule.rule_id}')">编辑</button>
+                                <button class="btn btn-danger" onclick="deleteRule('${rule.rule_id}')">删除</button>
+                            </td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table>';
+                    content.innerHTML = html;
+                } else {
+                    document.getElementById('rules-content').innerHTML = `<div class="error">加载失败: ${result.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('rules-content').innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 加载监控指标列表
+        async function loadMonitorItems() {
+            try {
+                const response = await fetch('/api/monitor-items');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('itemSelect');
+                    select.innerHTML = '<option value="">请选择监控指标</option>';
+                    
+                    result.data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.item_id;
+                        option.textContent = `${item.item_name} (${item.metric_type})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载监控指标失败:', error);
+            }
+        }
+        
+        // 显示新增规则模态框
+        function showAddRuleModal() {
+            document.getElementById('addRuleModal').style.display = 'block';
+            loadMonitorItems();
+        }
+        
+        // 关闭新增规则模态框
+        function closeAddRuleModal() {
+            document.getElementById('addRuleModal').style.display = 'none';
+            document.getElementById('addRuleForm').reset();
+        }
+        
+        // 提交新增规则表单
+        document.getElementById('addRuleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                rule_name: document.getElementById('ruleName').value,
+                item_id: document.getElementById('itemSelect').value,
+                condition_type: parseInt(document.getElementById('conditionType').value),
+                threshold_value: parseFloat(document.getElementById('thresholdValue').value),
+                severity: parseInt(document.getElementById('ruleSeverity').value),
+                continuous_count: parseInt(document.getElementById('continuousCount').value),
+                description_template: document.getElementById('descriptionTemplate').value
+            };
+            
+            try {
+                const response = await fetch('/api/alert-rules', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('告警规则创建成功！');
+                    closeAddRuleModal();
+                    loadAlertRules();
+                } else {
+                    alert('创建失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('创建失败: ' + error.message);
+            }
+        });
+        
+        // 编辑规则
+        function editRule(ruleId) {
+            alert('编辑功能开发中...');
+        }
+        
+        // 删除规则
+        async function deleteRule(ruleId) {
+            if (!confirm('确定要删除这个告警规则吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/alert-rules/${ruleId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('删除成功！');
+                    loadAlertRules();
+                } else {
+                    alert('删除失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('addRuleModal');
+            if (event.target === modal) {
+                closeAddRuleModal();
+            }
+        }
+        
+        // 页面加载完成后执行
+        window.onload = function() {
+            loadAlertRules();
+        };
+    </script>
+</body>
+</html>
