@@ -56,6 +56,11 @@ def alert_rules_page():
     from flask import send_from_directory
     return send_from_directory('templates', 'alert_rules.html')
 
+@app.route('/alerts')
+def alerts_page():
+    """告警管理页面"""
+    return render_template('alerts.html')
+
 @app.route('/api/dashboard')
 def dashboard_data():
     """获取仪表板数据"""
@@ -156,24 +161,87 @@ def handle_alerts():
     """获取告警列表或创建新告警"""
     if request.method == 'GET':
         try:
+            # 获取分页参数
+            page = int(request.args.get('page', 1))
+            page_size = int(request.args.get('page_size', 20))
+            offset = (page - 1) * page_size
+            
+            # 获取筛选参数
+            status = request.args.get('status')
+            instance_id = request.args.get('instance_id')
+            app_id = request.args.get('app_id')
+            rule_name = request.args.get('rule_name')
+            
             with get_db_connection() as conn:
                 cursor = conn.cursor(pymysql.cursors.DictCursor)
-                cursor.execute("""
-                    SELECT ae.event_id, ae.trigger_value, ae.severity, ae.status,
-                           ae.start_time, ae.end_time, ar.rule_name, 
-                           a.app_name, i.instance_name
+                
+                # 构建WHERE条件
+                where_conditions = []
+                params = []
+                
+                if status is not None and status != '':
+                    where_conditions.append("ae.status = %s")
+                    params.append(int(status))
+                
+                if instance_id:
+                    where_conditions.append("ae.instance_id = %s")
+                    params.append(instance_id)
+                
+                if app_id:
+                    where_conditions.append("a.app_id = %s")
+                    params.append(app_id)
+                
+                if rule_name:
+                    where_conditions.append("ar.rule_name LIKE %s")
+                    params.append(f"%{rule_name}%")
+                
+                where_clause = ""
+                if where_conditions:
+                    where_clause = "WHERE " + " AND ".join(where_conditions)
+                
+                # 查询总数
+                count_sql = f"""
+                    SELECT COUNT(*) as total
                     FROM alert_event ae
                     JOIN alert_rule ar ON ae.rule_id = ar.rule_id
                     JOIN instance i ON ae.instance_id = i.instance_id
                     JOIN application a ON i.app_id = a.app_id
+                    {where_clause}
+                """
+                cursor.execute(count_sql, params)
+                total = cursor.fetchone()['total']
+                
+                # 查询数据
+                data_sql = f"""
+                    SELECT ae.event_id, ae.trigger_value, ae.severity, ae.status,
+                           ae.start_time, ae.end_time, ar.rule_name, 
+                           a.app_name, a.app_id, i.instance_name, i.instance_id
+                    FROM alert_event ae
+                    JOIN alert_rule ar ON ae.rule_id = ar.rule_id
+                    JOIN instance i ON ae.instance_id = i.instance_id
+                    JOIN application a ON i.app_id = a.app_id
+                    {where_clause}
                     ORDER BY ae.start_time DESC
-                    LIMIT 50
-                """)
+                    LIMIT %s OFFSET %s
+                """
+                params.extend([page_size, offset])
+                cursor.execute(data_sql, params)
                 alerts = cursor.fetchall()
+                
+                # 计算分页信息
+                total_pages = (total + page_size - 1) // page_size
                 
                 return jsonify({
                     'success': True,
-                    'data': alerts
+                    'data': alerts,
+                    'pagination': {
+                        'page': page,
+                        'page_size': page_size,
+                        'total': total,
+                        'total_pages': total_pages,
+                        'has_next': page < total_pages,
+                        'has_prev': page > 1
+                    }
                 })
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)})

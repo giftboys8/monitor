@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>告警管理 - 应用运维监控系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .filter-control {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .filter-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            position: sticky;
+            top: 0;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-danger { background: #f8d7da; color: #721c24; }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .pagination-info {
+            margin-right: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .pagination {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .table {
+                font-size: 0.8rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 8px;
+            }
+        }
+    </style>
+    
+    <!-- Dify Chatbot Configuration -->
+    <script>
+        window.difyChatbotConfig = {
+            token: 'w29yksUSoS0fq4Zc',
+            baseUrl: 'http://182.61.146.253',
+            systemVariables: {
+                // user_id: 'YOU CAN DEFINE USER ID HERE',
+                // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
+            },
+        }
+    </script>
+    <script
+        src="http://182.61.146.253/embed.min.js"
+        id="w29yksUSoS0fq4Zc"
+        defer>
+    </script>
+    <style>
+        #dify-chatbot-bubble-button {
+            background-color: #1C64F2 !important;
+        }
+        #dify-chatbot-bubble-window {
+            width: 24rem !important;
+            height: 40rem !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 告警管理</h1>
+            <p>实时监控和管理系统告警信息</p>
+        </div>
+        
+        <div class="content-section">
+            <h2 class="section-title">📋 告警列表</h2>
+            
+            <!-- 筛选区域 -->
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">状态</label>
+                        <select id="statusFilter" class="filter-control" title="选择告警状态进行筛选">
+                            <option value="">全部状态</option>
+                            <option value="0">新建</option>
+                            <option value="1">已确认</option>
+                            <option value="2">已解决</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">应用</label>
+                        <select id="appFilter" class="filter-control" title="选择应用进行筛选">
+                            <option value="">全部应用</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">实例</label>
+                        <select id="instanceFilter" class="filter-control" title="选择实例进行筛选">
+                            <option value="">全部实例</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">规则名称</label>
+                        <input type="text" id="ruleNameFilter" class="filter-control" placeholder="输入规则名称">
+                    </div>
+                    
+                    <div class="filter-buttons">
+                        <button class="btn btn-primary" onclick="applyFilters()">🔍 筛选</button>
+                        <button class="btn btn-secondary" onclick="resetFilters()">🔄 重置</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 告警表格 -->
+            <div id="alerts-content">
+                <div class="loading">正在加载告警数据...</div>
+            </div>
+            
+            <!-- 分页控件 -->
+            <div id="pagination-container" style="display: none;">
+                <div class="pagination">
+                    <div class="pagination-info">
+                        <span id="pagination-info-text"></span>
+                    </div>
+                    
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="first-page" onclick="goToPage(1)">首页</button>
+                        <button class="pagination-btn" id="prev-page" onclick="goToPrevPage()">上一页</button>
+                        
+                        <div id="page-numbers"></div>
+                        
+                        <button class="pagination-btn" id="next-page" onclick="goToNextPage()">下一页</button>
+                        <button class="pagination-btn" id="last-page" onclick="goToLastPage()">末页</button>
+                    </div>
+                    
+                    <div class="page-size-selector">
+                        <label>每页显示:</label>
+                        <select id="page-size" onchange="changePageSize()">
+                            <option value="10">10</option>
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let currentPage = 1;
+        let pageSize = 20;
+        let totalPages = 1;
+        let totalCount = 0;
+        let currentFilters = {};
+        
+        // 页面加载完成后执行
+        window.onload = function() {
+            loadApplications();
+            loadInstances();
+            loadAlerts();
+        };
+        
+        // 加载应用列表用于筛选
+        async function loadApplications() {
+            try {
+                const response = await fetch('/api/applications');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('appFilter');
+                    select.innerHTML = '<option value="">全部应用</option>';
+                    
+                    result.data.forEach(app => {
+                        const option = document.createElement('option');
+                        option.value = app.app_id;
+                        option.textContent = app.app_name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载应用列表失败:', error);
+            }
+        }
+        
+        // 加载实例列表用于筛选
+        async function loadInstances() {
+            try {
+                const response = await fetch('/api/instances');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('instanceFilter');
+                    select.innerHTML = '<option value="">全部实例</option>';
+                    
+                    result.data.forEach(instance => {
+                        const option = document.createElement('option');
+                        option.value = instance.instance_id;
+                        option.textContent = `${instance.instance_name} (${instance.app_name})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载实例列表失败:', error);
+            }
+        }
+        
+        // 加载告警列表
+        async function loadAlerts(page = 1) {
+            try {
+                document.getElementById('alerts-content').innerHTML = '<div class="loading">正在加载告警数据...</div>';
+                
+                // 构建查询参数
+                const params = new URLSearchParams({
+                    page: page,
+                    page_size: pageSize,
+                    ...currentFilters
+                });
+                
+                const response = await fetch(`/api/alerts?${params}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentPage = result.pagination.page;
+                    totalPages = result.pagination.total_pages;
+                    totalCount = result.pagination.total;
+                    
+                    renderAlertsTable(result.data);
+                    renderPagination(result.pagination);
+                } else {
+                    document.getElementById('alerts-content').innerHTML = `<div class="error">加载失败: ${result.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('alerts-content').innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 渲染告警表格
+        function renderAlertsTable(alerts) {
+            const content = document.getElementById('alerts-content');
+            
+            if (alerts.length === 0) {
+                content.innerHTML = '<div class="no-data">暂无符合条件的告警数据</div>';
+                return;
+            }
+            
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>规则名称</th>
+                            <th>应用</th>
+                            <th>实例</th>
+                            <th>触发值</th>
+                            <th>严重程度</th>
+                            <th>状态</th>
+                            <th>开始时间</th>
+                            <th>结束时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            alerts.forEach(alert => {
+                let severityClass, severityText;
+                switch(alert.severity) {
+                    case 1: severityClass = 'status-active'; severityText = '信息'; break;
+                    case 2: severityClass = 'status-warning'; severityText = '警告'; break;
+                    case 3: severityClass = 'status-danger'; severityText = '严重'; break;
+                    case 4: severityClass = 'status-danger'; severityText = '致命'; break;
+                    default: severityClass = 'status-active'; severityText = '未知';
+                }
+                
+                let statusClass, statusText;
+                switch(alert.status) {
+                    case 0: statusClass = 'status-danger'; statusText = '新建'; break;
+                    case 1: statusClass = 'status-warning'; statusText = '已确认'; break;
+                    case 2: statusClass = 'status-active'; statusText = '已解决'; break;
+                    default: statusClass = 'status-active'; statusText = '未知';
+                }
+                
+                const startTime = alert.start_time ? new Date(alert.start_time).toLocaleString('zh-CN') : '-';
+                const endTime = alert.end_time ? new Date(alert.end_time).toLocaleString('zh-CN') : '-';
+                
+                html += `
+                    <tr>
+                        <td>${alert.rule_name}</td>
+                        <td>${alert.app_name}</td>
+                        <td>${alert.instance_name}</td>
+                        <td>${alert.trigger_value || '-'}</td>
+                        <td><span class="status-badge ${severityClass}">${severityText}</span></td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${startTime}</td>
+                        <td>${endTime}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            content.innerHTML = html;
+        }
+        
+        // 渲染分页控件
+        function renderPagination(pagination) {
+            const container = document.getElementById('pagination-container');
+            const infoText = document.getElementById('pagination-info-text');
+            const pageNumbers = document.getElementById('page-numbers');
+            
+            // 显示分页信息
+            const start = (pagination.page - 1) * pagination.page_size + 1;
+            const end = Math.min(pagination.page * pagination.page_size, pagination.total);
+            infoText.textContent = `显示 ${start}-${end} 条，共 ${pagination.total} 条记录`;
+            
+            // 更新按钮状态
+            document.getElementById('first-page').disabled = !pagination.has_prev;
+            document.getElementById('prev-page').disabled = !pagination.has_prev;
+            document.getElementById('next-page').disabled = !pagination.has_next;
+            document.getElementById('last-page').disabled = !pagination.has_next;
+            
+            // 生成页码按钮
+            let pageNumbersHtml = '';
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, pagination.page - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(pagination.total_pages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === pagination.page ? 'active' : '';
+                pageNumbersHtml += `<button class="pagination-btn ${activeClass}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            
+            pageNumbers.innerHTML = pageNumbersHtml;
+            container.style.display = 'block';
+        }
+        
+        // 应用筛选
+        function applyFilters() {
+            currentFilters = {};
+            
+            const status = document.getElementById('statusFilter').value;
+            const appId = document.getElementById('appFilter').value;
+            const instanceId = document.getElementById('instanceFilter').value;
+            const ruleName = document.getElementById('ruleNameFilter').value.trim();
+            
+            if (status !== '') currentFilters.status = status;
+            if (appId !== '') currentFilters.app_id = appId;
+            if (instanceId !== '') currentFilters.instance_id = instanceId;
+            if (ruleName !== '') currentFilters.rule_name = ruleName;
+            
+            currentPage = 1;
+            loadAlerts(1);
+        }
+        
+        // 重置筛选
+        function resetFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('appFilter').value = '';
+            document.getElementById('instanceFilter').value = '';
+            document.getElementById('ruleNameFilter').value = '';
+            
+            currentFilters = {};
+            currentPage = 1;
+            loadAlerts(1);
+        }
+        
+        // 分页导航函数
+        function goToPage(page) {
+            if (page >= 1 && page <= totalPages) {
+                loadAlerts(page);
+            }
+        }
+        
+        function goToPrevPage() {
+            if (currentPage > 1) {
+                loadAlerts(currentPage - 1);
+            }
+        }
+        
+        function goToNextPage() {
+            if (currentPage < totalPages) {
+                loadAlerts(currentPage + 1);
+            }
+        }
+        
+        function goToLastPage() {
+            loadAlerts(totalPages);
+        }
+        
+        // 改变每页显示数量
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('page-size').value);
+            currentPage = 1;
+            loadAlerts(1);
+        }
+    </script>
+</body>
+</html>

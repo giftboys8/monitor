@@ -294,6 +294,31 @@
             }
         }
     </style>
+    <!-- Dify Chatbot Configuration -->
+    <script>
+        window.difyChatbotConfig = {
+            token: 'w29yksUSoS0fq4Zc',
+            baseUrl: 'http://182.61.146.253',
+            systemVariables: {
+                // user_id: 'YOU CAN DEFINE USER ID HERE',
+                // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
+            },
+        }
+    </script>
+    <script
+        src="http://182.61.146.253/embed.min.js"
+        id="w29yksUSoS0fq4Zc"
+        defer>
+    </script>
+    <style>
+        #dify-chatbot-bubble-button {
+            background-color: #1C64F2 !important;
+        }
+        #dify-chatbot-bubble-window {
+            width: 24rem !important;
+            height: 40rem !important;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -359,6 +384,7 @@
             <div style="margin-bottom: 15px;">
                 <button class="btn btn-primary" onclick="showAddAlertModal()">➕ 新增告警</button>
                 <button class="btn btn-secondary" onclick="showAlertRulesPage()">⚙️ 告警规则配置</button>
+                <button class="btn btn-secondary" onclick="showAlertsPage()">📋 告警管理</button>
             </div>
             <div id="alerts-content">
                 <div class="loading">正在加载告警数据...</div>
@@ -667,7 +693,12 @@
         
         // 显示告警规则配置页面
         function showAlertRulesPage() {
-            window.open('http://localhost:8086/alert-rules', '_blank');
+            window.open('/alert-rules', '_blank');
+        }
+        
+        // 显示告警管理页面
+        function showAlertsPage() {
+            window.open('/alerts', '_blank');
         }
         
         // 点击模态框外部关闭
