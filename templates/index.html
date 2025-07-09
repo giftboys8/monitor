@@ -294,31 +294,90 @@
             }
         }
     </style>
-    <!-- Dify Chatbot Configuration -->
+    <!-- Dify Chatbot Configuration - 优化版本 -->
     <script>
-        window.difyChatbotConfig = {
-            token: 'w29yksUSoS0fq4Zc',
-            baseUrl: 'http://182.61.146.253',
-            systemVariables: {
-                // user_id: 'YOU CAN DEFINE USER ID HERE',
-                // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
-            },
+        // AI聊天机器人异步加载函数
+        function loadAIChatbot() {
+            // 配置聊天机器人
+            window.difyChatbotConfig = {
+                token: 'w29yksUSoS0fq4Zc',
+                baseUrl: 'http://182.61.146.253',
+                systemVariables: {
+                    // user_id: 'YOU CAN DEFINE USER ID HERE',
+                    // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
+                },
+            };
+            
+            // 创建script标签异步加载
+            const script = document.createElement('script');
+            script.src = 'http://182.61.146.253/embed.min.js';
+            script.id = 'w29yksUSoS0fq4Zc';
+            script.async = true; // 使用async而不是defer
+            
+            // 设置加载超时
+            const timeout = setTimeout(() => {
+                console.warn('AI聊天机器人加载超时，已跳过');
+                script.remove();
+            }, 5000); // 5秒超时
+            
+            // 成功加载处理
+            script.onload = function() {
+                clearTimeout(timeout);
+                console.log('AI聊天机器人脚本加载成功');
+                
+                // 等待AI聊天机器人初始化完成
+                setTimeout(() => {
+                    // 检查AI聊天机器人是否已初始化
+                    const chatButton = document.getElementById('dify-chatbot-bubble-button');
+                    if (chatButton) {
+                        console.log('AI聊天机器人初始化成功，图标已显示');
+                        
+                        // 添加自定义样式
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            #dify-chatbot-bubble-button {
+                                background-color: #1C64F2 !important;
+                                z-index: 9999 !important;
+                            }
+                            #dify-chatbot-bubble-window {
+                                width: 24rem !important;
+                                height: 40rem !important;
+                                z-index: 9998 !important;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    } else {
+                        console.warn('AI聊天机器人初始化失败，图标未显示');
+                        // 再次尝试检查
+                        setTimeout(() => {
+                            const retryButton = document.getElementById('dify-chatbot-bubble-button');
+                            if (retryButton) {
+                                console.log('AI聊天机器人延迟初始化成功');
+                            } else {
+                                console.warn('AI聊天机器人最终初始化失败');
+                            }
+                        }, 2000);
+                    }
+                }, 1000); // 等待1秒让AI聊天机器人完成初始化
+            };
+            
+            // 错误处理
+            script.onerror = function() {
+                clearTimeout(timeout);
+                console.warn('AI聊天机器人加载失败，功能已禁用');
+                script.remove();
+            };
+            
+            // 添加到页面
+            document.head.appendChild(script);
         }
+        
+        // 延迟加载AI聊天机器人，确保主要功能优先加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 等待3秒后再加载AI聊天机器人，确保主要数据已加载
+            setTimeout(loadAIChatbot, 3000);
+        });
     </script>
-    <script
-        src="http://182.61.146.253/embed.min.js"
-        id="w29yksUSoS0fq4Zc"
-        defer>
-    </script>
-    <style>
-        #dify-chatbot-bubble-button {
-            background-color: #1C64F2 !important;
-        }
-        #dify-chatbot-bubble-window {
-            width: 24rem !important;
-            height: 40rem !important;
-        }
-    </style>
 </head>
 <body>
     <div class="container">

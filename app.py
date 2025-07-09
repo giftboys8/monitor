@@ -5,10 +5,8 @@
 主应用程序入口
 """
 
-import os
 import uuid
-from datetime import datetime, timedelta
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 import pymysql
 from contextlib import contextmanager
 
@@ -44,16 +42,11 @@ def index():
     """首页 - 监控概览"""
     return render_template('index.html')
 
-@app.route('/test.html')
-def test_page():
-    """测试页面"""
-    with open('test.html', 'r', encoding='utf-8') as f:
-        return f.read()
+
 
 @app.route('/alert-rules')
 def alert_rules_page():
     """告警规则配置页面"""
-    from flask import send_from_directory
     return send_from_directory('templates', 'alert_rules.html')
 
 @app.route('/alerts')
@@ -110,20 +103,14 @@ def get_applications():
             """)
             applications = cursor.fetchall()
             
-            # 添加日志输出
-            print(f"应用列表API返回数据: {len(applications)} 条记录")
-            if len(applications) == 0:
-                # 检查表中是否有数据
-                cursor.execute("SELECT COUNT(*) as count FROM application")
-                total = cursor.fetchone()['count']
-                print(f"application表中共有 {total} 条记录")
+
             
             return jsonify({
                 'success': True,
                 'data': applications
             })
     except Exception as e:
-        print(f"获取应用列表出错: {str(e)}")
+
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/servers')
@@ -140,20 +127,14 @@ def get_servers():
             """)
             servers = cursor.fetchall()
             
-            # 添加日志输出
-            print(f"服务器列表API返回数据: {len(servers)} 条记录")
-            if len(servers) == 0:
-                # 检查表中是否有数据
-                cursor.execute("SELECT COUNT(*) as count FROM server")
-                total = cursor.fetchone()['count']
-                print(f"server表中共有 {total} 条记录")
+
             
             return jsonify({
                 'success': True,
                 'data': servers
             })
     except Exception as e:
-        print(f"获取服务器列表出错: {str(e)}")
+
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/alerts', methods=['GET', 'POST'])
@@ -266,13 +247,13 @@ def handle_alerts():
                 ))
                 conn.commit()
                 
-                print(f"新增告警成功: {event_id}")
+
                 return jsonify({
                     'success': True,
                     'data': {'event_id': event_id}
                 })
         except Exception as e:
-            print(f"新增告警失败: {str(e)}")
+
             return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/alert-rules', methods=['GET', 'POST'])
