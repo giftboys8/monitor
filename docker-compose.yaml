@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Flask应用服务
+  monitor_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monitor_app
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - DB_HOST=localhost
+      - DB_PORT=3308
+      - DB_USER=root
+      - DB_PASSWORD=123456
+      - DB_NAME=app_monitor_db
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./templates:/app/templates:ro
+      - ./static:/app/static:ro
+      - app_logs:/app/logs
+    network_mode: host
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/dashboard"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+volumes:
+  app_logs:
+    driver: local
