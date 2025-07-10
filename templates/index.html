@@ -294,88 +294,236 @@
             }
         }
     </style>
-    <!-- Dify Chatbot Configuration - 优化版本 -->
+    <!-- AI聊天机器人 - 混合加载策略 -->
     <script>
-        // AI聊天机器人异步加载函数
-        function loadAIChatbot() {
-            // 配置聊天机器人
-            window.difyChatbotConfig = {
-                token: 'w29yksUSoS0fq4Zc',
-                baseUrl: 'http://182.61.146.253',
-                systemVariables: {
-                    // user_id: 'YOU CAN DEFINE USER ID HERE',
-                    // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
-                },
+        // 立即显示聊天按钮，确保用户能看到
+        function createChatButton() {
+            console.log('创建AI聊天机器人按钮...');
+            
+            const chatButton = document.createElement('div');
+            chatButton.id = 'ai-chat-button';
+            chatButton.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 13.54 2.36 14.99 3.01 16.28L2 22L7.72 20.99C9.01 21.64 10.46 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C10.74 20 9.54 19.75 8.46 19.3L4.5 20.5L5.7 16.54C5.25 15.46 5 14.26 5 13C5 8.03 8.03 5 13 5C17.97 5 21 8.03 21 13C21 17.97 17.97 21 12 21Z" fill="white"/>
+                    <circle cx="9" cy="12" r="1" fill="white"/>
+                    <circle cx="12" cy="12" r="1" fill="white"/>
+                    <circle cx="15" cy="12" r="1" fill="white"/>
+                </svg>
+            `;
+            
+            chatButton.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 9999;
+                box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+                transition: all 0.3s ease;
+                border: none;
+                animation: pulse 2s infinite;
+            `;
+            
+            // 添加脉冲动画
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0% { box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4); }
+                    50% { box-shadow: 0 4px 30px rgba(102, 126, 234, 0.8); }
+                    100% { box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 点击事件
+            chatButton.onclick = function() {
+                openChatWindow();
             };
             
-            // 创建script标签异步加载
+            // 悬停效果
+            chatButton.onmouseover = function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.background = 'linear-gradient(135deg, #5a67d8 0%, #6a4c93 100%)';
+            };
+            
+            chatButton.onmouseout = function() {
+                this.style.transform = 'scale(1)';
+                this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            };
+            
+            document.body.appendChild(chatButton);
+            console.log('✅ AI聊天机器人按钮已创建并显示');
+            
+            return chatButton;
+        }
+        
+        // 打开聊天窗口
+        function openChatWindow() {
+            // 检查是否已有聊天窗口
+            if (document.getElementById('chat-window')) {
+                const existingWindow = document.getElementById('chat-window');
+                existingWindow.style.display = existingWindow.style.display === 'none' ? 'block' : 'none';
+                return;
+            }
+            
+            const chatWindow = document.createElement('div');
+            chatWindow.id = 'chat-window';
+            chatWindow.innerHTML = `
+                <div style="background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 16px;">🤖 AI助手</h3>
+                        <button onclick="closeChatWindow()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">×</button>
+                    </div>
+                    <div style="padding: 20px; height: 300px; overflow-y: auto;" id="chat-messages">
+                        <div style="background: #f0f0f0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                            <strong>AI助手:</strong> 您好！我是您的AI助手。目前正在尝试连接到高级AI服务...
+                        </div>
+                        <div style="background: #f0f0f0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                            <strong>AI助手:</strong> 如果您有任何关于监控系统的问题，我很乐意为您解答！
+                        </div>
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                            <strong>提示:</strong> 您可以询问关于应用监控、告警规则、服务器状态等相关问题。
+                        </div>
+                    </div>
+                    <div style="padding: 15px; border-top: 1px solid #eee;">
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="chat-input" placeholder="输入您的问题..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none;">
+                            <button onclick="sendMessage()" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer;">发送</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatWindow.style.cssText = `
+                position: fixed;
+                bottom: 90px;
+                right: 20px;
+                width: 350px;
+                height: 450px;
+                z-index: 9998;
+                animation: slideUp 0.3s ease;
+            `;
+            
+            // 添加滑入动画
+            const animationStyle = document.createElement('style');
+            animationStyle.textContent = `
+                @keyframes slideUp {
+                    from { transform: translateY(20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(animationStyle);
+            
+            document.body.appendChild(chatWindow);
+            
+            // 输入框回车事件
+            document.getElementById('chat-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+        
+        // 关闭聊天窗口
+        function closeChatWindow() {
+            const chatWindow = document.getElementById('chat-window');
+            if (chatWindow) {
+                chatWindow.style.display = 'none';
+            }
+        }
+        
+        // 发送消息
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const messages = document.getElementById('chat-messages');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // 添加用户消息
+            const userMessage = document.createElement('div');
+            userMessage.style.cssText = 'background: #667eea; color: white; padding: 10px; border-radius: 10px; margin-bottom: 10px; text-align: right;';
+            userMessage.innerHTML = `<strong>您:</strong> ${message}`;
+            messages.appendChild(userMessage);
+            
+            // 清空输入框
+            input.value = '';
+            
+            // 模拟AI回复
+            setTimeout(() => {
+                const aiMessage = document.createElement('div');
+                aiMessage.style.cssText = 'background: #f0f0f0; padding: 10px; border-radius: 10px; margin-bottom: 10px;';
+                
+                let response = '感谢您的问题！';
+                if (message.includes('告警') || message.includes('报警')) {
+                    response = '关于告警功能：您可以在告警管理页面查看当前的告警状态，也可以在告警规则配置页面设置新的告警规则。';
+                } else if (message.includes('服务器') || message.includes('主机')) {
+                    response = '关于服务器监控：系统会实时监控服务器的CPU、内存、磁盘等指标，您可以在主页查看服务器列表和状态。';
+                } else if (message.includes('应用') || message.includes('app')) {
+                    response = '关于应用监控：系统支持多应用监控，您可以查看应用的运行状态、实例数量等信息。';
+                } else {
+                    response = '我正在学习中，目前可以为您介绍监控系统的基本功能。您可以询问关于告警、服务器监控、应用管理等方面的问题。';
+                }
+                
+                aiMessage.innerHTML = `<strong>AI助手:</strong> ${response}`;
+                messages.appendChild(aiMessage);
+                
+                // 滚动到底部
+                messages.scrollTop = messages.scrollHeight;
+            }, 1000);
+            
+            // 滚动到底部
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        // 尝试加载外部AI聊天机器人
+        function tryLoadExternalChatbot() {
+            console.log('尝试加载外部AI聊天机器人...');
+            
+            window.difyChatbotConfig = {
+                token: 'w29yksUSoS0fq4Zc',
+                baseUrl: 'http://182.61.146.253'
+            };
+            
             const script = document.createElement('script');
             script.src = 'http://182.61.146.253/embed.min.js';
             script.id = 'w29yksUSoS0fq4Zc';
-            script.async = true; // 使用async而不是defer
             
-            // 设置加载超时
-            const timeout = setTimeout(() => {
-                console.warn('AI聊天机器人加载超时，已跳过');
-                script.remove();
-            }, 5000); // 5秒超时
-            
-            // 成功加载处理
             script.onload = function() {
-                clearTimeout(timeout);
-                console.log('AI聊天机器人脚本加载成功');
-                
-                // 等待AI聊天机器人初始化完成
+                console.log('外部AI聊天机器人加载成功');
+                // 如果外部聊天机器人加载成功，隐藏本地按钮
                 setTimeout(() => {
-                    // 检查AI聊天机器人是否已初始化
-                    const chatButton = document.getElementById('dify-chatbot-bubble-button');
-                    if (chatButton) {
-                        console.log('AI聊天机器人初始化成功，图标已显示');
-                        
-                        // 添加自定义样式
-                        const style = document.createElement('style');
-                        style.textContent = `
-                            #dify-chatbot-bubble-button {
-                                background-color: #1C64F2 !important;
-                                z-index: 9999 !important;
-                            }
-                            #dify-chatbot-bubble-window {
-                                width: 24rem !important;
-                                height: 40rem !important;
-                                z-index: 9998 !important;
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    } else {
-                        console.warn('AI聊天机器人初始化失败，图标未显示');
-                        // 再次尝试检查
-                        setTimeout(() => {
-                            const retryButton = document.getElementById('dify-chatbot-bubble-button');
-                            if (retryButton) {
-                                console.log('AI聊天机器人延迟初始化成功');
-                            } else {
-                                console.warn('AI聊天机器人最终初始化失败');
-                            }
-                        }, 2000);
+                    const externalButton = document.getElementById('dify-chatbot-bubble-button');
+                    const localButton = document.getElementById('ai-chat-button');
+                    if (externalButton && localButton) {
+                        localButton.style.display = 'none';
+                        console.log('外部AI聊天机器人已接管，本地按钮已隐藏');
                     }
-                }, 1000); // 等待1秒让AI聊天机器人完成初始化
+                }, 2000);
             };
             
-            // 错误处理
             script.onerror = function() {
-                clearTimeout(timeout);
-                console.warn('AI聊天机器人加载失败，功能已禁用');
-                script.remove();
+                console.log('外部AI聊天机器人加载失败，使用本地版本');
             };
             
-            // 添加到页面
             document.head.appendChild(script);
         }
         
-        // 延迟加载AI聊天机器人，确保主要功能优先加载
+        // 页面加载完成后立即创建聊天按钮
         document.addEventListener('DOMContentLoaded', function() {
-            // 等待3秒后再加载AI聊天机器人，确保主要数据已加载
-            setTimeout(loadAIChatbot, 3000);
+            console.log('页面加载完成，创建AI聊天机器人...');
+            
+            // 立即创建本地聊天按钮
+            createChatButton();
+            
+            // 延迟尝试加载外部聊天机器人
+            setTimeout(tryLoadExternalChatbot, 2000);
         });
     </script>
 </head>
